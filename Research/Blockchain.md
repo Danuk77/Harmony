@@ -55,11 +55,11 @@ Addresses are generated from a public key. Person B holds the private key to the
 
 ### Mining / proof of work
 
-_Proof of work_ is the _consensus mechanism_ used by Bitcoin. The blockchain can only be altered if more that 50% of the miners work together(idk why), which requires a huge amount of computing pouer.
+_Proof of work_ is the _consensus mechanism_ used by Bitcoin. If more that 50% of the miners work together  (pool their resources) then this can allow for double-spending and censoring transactions. This requires a huge amount of computing pouer. Centralization problems with Bitcoin: https://eprint.iacr.org/2013/829.pdf
 
 How it works:
 A new list of transactions is to be added to the blockchain.
-There are multiple competing blocks which only differ by one transaction - the address to where the block reward will be sent. Miners compete to _confirm_ the block in which **they** receive the _block reward_. This reward started at 50 Bitcoin in 2009, and gets cut in half roughly every 4 years.
+There are multiple competing blocks which only differ by one transaction - the address to where the block reward will be sent. Miners compete to _confirm_ the block in which **they** receive the _block reward_. They also collect transaction fees from the transactions included in the block, which [I think] is the incentive for the miner to not omit transactions. The block reward started at 50 Bitcoin in 2009, and gets cut in half roughly every 4 years.
 
 The goal for the miners is to find a string with the following properties:
 
@@ -67,20 +67,22 @@ The goal for the miners is to find a string with the following properties:
 - The rest of it is any 32-bit string (the _nonce_)
 - When the string is run through SHA256 the value must be **lower** than the _target hash value_. This amount is the same for everybody, and decreases the more miners there are making it more difficult. The target hash value is adjusted every 2 weeks such that the expected time for a block to be confirmed (the _block time_) is always 10 minutes.
 
-## On messaging apps
+## On messaging apps/my opinion
 
-A lot of this section is my (mostly uninformed) opinion, so pls take with a pinch of salt. I need to do more reseach really, some/all of this might not be correct.
-
-From my understanding, blockchain technology has some features that could be beneficial for messaging apps, but these reasons might make blockchain a bad idea:
+Blockchain technology has some features that could be beneficial for messaging apps, but there are also disadvantages:
 
 - Blockchains are closely tied to finance, as they often have to rely on financial incentives to maintain integrity.
-- Proof-of-work blockchains have a high power consumption and therefore a negative environemental impact. (Proof of stake blockchains might be better in this regard, but are more closely tied to finance)
+- Proof-of-work blockchains have a high power consumption and therefore a negative environemental impact. (Proof of stake blockchains might be better in this regard, but are even more closely tied to finance)
 - Due to the immutable nature of blockchains, leaked private information could be impossible to remove. This is also somewhat the case with conventional messaging apps where anyone can take a screenshot, however the permanent+public nature of blockchains sounds like an unnecessary feature.
-- We don't want the messages to be public, so we would have to encrypt the messages in some way, or just have a new private blockchain for each group chat (if you can even do that I don't know).
-- If the blockchain is only used amongst friends then we should consider how much we would benefit from a trustless system.
-- Using blockchain could have issues with clients going offline, as this could lead to diverging chains, e.g. if two non-intersecting groups of people use the group chat at different times then there would have to be some sort of merging going on. (I don't know if this is difficult to accomplish in blockchain)
+    - An alternate method might be a scheme such as only adding the hashes of messages on the blockchain and not the messages themselves, and requiring users to transmit the messages between each other by other means. Perhaps the chain itself could be implemented as a list of transactions like `user 6 creates message 641 (hash: <>)`, `user 2 edits message 380 (hash: <>)`, etc.
+- The integrity of a blockchain can be compromised if the majority of the computing power is controlled by a single entity. If used in a small group chat it will be easy for someone to gain control. Therefore we would have to rely on a larger common blockchain, perhaps containing multiple anonymized group chats.
+- Blockchain is designed to be a trustless system, but for messaging applications, in most cases it is not as important for it to be trustless as with e.g. cryptocurrency. Perhaps it's a bit overkill?
 
-Howerer, blockchain being decentralized is a plus, as well as the cryptographic techniques used to verify identity. Again, I need to look into this more.
+Blockchain also has advantages and transferable features:
+
+- Although a full trustless system probably isn't necessary for our use case, there is at least some level of trust that we require so that, for example, users can't edit other users' messages. Blockchain uses public key cryptography in several ways - bitcoin transactions are signed with the user's private key so that the integrity can be verified. We could use something similar for the chat messages to make sure they are not being tampered with.
+- Blockchain's consensus mechanisms help to mainatain a common distributed database by having strict rules about what new blocks are allowed onto the chain (rules as determined by the consensus mechanism used). I'm not sure if any blockchain-esque consensus mechanisms would be appropriate here however due to the aforementioned links to finance - perhaps there's a way????? 
+
 
 ## Other stuff
 
