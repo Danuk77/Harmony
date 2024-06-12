@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>WebRTC with Signalling</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+            integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+            crossorigin="anonymous" defer></script>
+        <!-- second script depends on the first -->
+        <script src="{{ url_for('static', filename='main.js') }}" defer></script>
+
+    </head>
+
+    <body>
+
+        <label>Enter your username</label>
+        <input id="myUsername">
+        <button id="registerUser">Register user</button>
+
+        <div id="userList">
+            <!-- <a onclick="alert('not implemented')" href="#">Username</a> -->
+        </div>
+
+        <br>
+        
+        <div id="chat">
+            <div id="chatContent"></div>
+        </div>
+        <input id="chatInput" rows="1"></input>
+
+    </body>
+
+
+</html>
