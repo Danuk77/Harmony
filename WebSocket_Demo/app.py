@@ -6,7 +6,14 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 
+# {name:str, id:str}
 users = []
+def getUserById(id:str):
+    return next((user for user in users if user["id"] == id), None)
+
+# list of forwarding rules
+# {fromId: toId, ...}
+forwardingMap = dict()
 
 
 @app.route("/")
@@ -18,16 +25,6 @@ def homepage():
     
     return render_template("main.html")
 
-# @socketio.on("client message")
-# def receive_message(data):
-#     """Receive messages from the client.
-
-#     The client can send these with `emit("client message", "YOUR MESSAGE HERE")`
-#     """
-
-#     # emit to the current client only - context sensitive
-#     emit("server message", "Thank you for that message")
-#     print(data)
 
 
 @socketio.on("connect")
@@ -38,12 +35,17 @@ def connect():
 
 @socketio.on("disconnect")
 def disconnect():
+    """Special event, called when a user disconnects.
+    """
+    global users, forwardingMap
 
-    global users
     print("removing user with sid: " + request.sid)
 
-    # remove user from list
+    # remove user
     users = [user for user in users if user["id"] != request.sid]
+
+    # remove user from forwarding map
+    forwardingMap = {fromId:toId for fromId, toId in forwardingMap.items() if request.sid not in (fromId, toId)}
 
     # broadcast new list of users
     emit("users", users, broadcast=True)
@@ -60,6 +62,10 @@ def registerUser(username: str):
         if user["id"] == request.sid:
             emit("alert", f"You are already registered as {user['name']}")
             return
+        
+    if username == "" or username is None:
+        emit("alert", "Please enter a username")
+        return
 
     print(f"Registering user {username} with id {request.sid}")
 
@@ -71,26 +77,76 @@ def registerUser(username: str):
 
 
 @socketio.event
-def requestChatWithUser(userId):
+def requestChatWithUser(userId: str):
+    """Local user requests to chat to remote user with id `userId`
+
+    Args:
+        userId (str): sid of remote user
+    """
+
+
     print(f"User {request.sid} requests chat with {userId}")
     if request.sid == userId:
         emit("alert", "You can't chat with yourself")
         return
-    userIds = [user["id"] for user in users]
-    if request.sid not in userIds:
+    
+    # check if the users exist
+    localUser = getUserById(request.sid)
+    remoteUser = getUserById(userId)
+    
+    if localUser is None:
         emit("alert", "You have not registered")
         return
-    if userId not in userIds:
+    if remoteUser is None:
         emit("alert", "That user has disconnected")
         return
     
-    
+    # ask the remote user to accept the connection
+    emit("receiveChatRequest", localUser, room=remoteUser["id"])
 
-    pass
+
+@socketio.event
+def confirmChatWithUser(userId:str):
+    """Positive response to a request to chat
+
+    Args:
+        userId (str): UserId of the chat initiator
+    """
+
+    # check if the users exist
+    acceptor = getUserById(request.sid)
+    initiator = getUserById(userId)
+
+    if acceptor is None or initiator is None:    
+        emit("alert", "Connection failed")
+        return
+    
+    # If I could be bothered I would check here if the other user is "engaged"
+
+    # setup forwarding rules
+    forwardingMap[request.sid] = userId
+    forwardingMap[userId] = request.sid
+
+    # inform clients who they are conencted to
+    emit("forwardingRuleCreated", {"remoteUser":initiator, "initiator":True})
+    emit("forwardingRuleCreated", {"remoteUser":acceptor, "initiator":False}, room=initiator["id"])
+
+
+@socketio.event
+def passMessage(message:str):
+    """Forward a message to the current recipient in the forwardingMap
+    """
+    
+    try:
+        remoteId = forwardingMap[request.sid]
+    except:
+        emit("alert", "Connection not set up")
+        return
+    
+    emit("receiveMessage", message, room=remoteId)
+
 
 
 
 if __name__ == '__main__':
     socketio.run(app)
-
-# send a message from the client by calling emit("client message", "YOUR MESSAGE HERE")
