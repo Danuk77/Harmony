@@ -3,7 +3,6 @@ from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-# app.config['SERVER_NAME'] = '86.137.237.109:25565'
 # app.config[]
 socketio = SocketIO(app)
 
