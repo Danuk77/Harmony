@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
+<!-- 
+        <h2>Create data channel</h2>
+        <div class="buttons">
+            <button id="create-data-channel" class="connect-btn">Create data channel</button>
+        </div>
+        <p id="data-channel-created"></p> -->
+
+        <h2>Set local description</h2>
+        <div class="buttons">
+            <button id="create-offer" class="connect-btn">Create offer</button>
+            <button id="create-answer" class="connect-btn">Create answer</button>
+        </div>
+
+
+        <!-- <p class="large-output" id="create-offer-answer-output"></p> -->
+
+        <h2>Set remote description</h2>
+
+        <textarea id="connection-input"></textarea>
+        
+        <div class="buttons">
+            <!-- <button id="set-local-description" class="connect-btn">Set local description</button> -->
+            <button id="set-remote-description" class="connect-btn">Set remote description</button>
+        </div>
+        
+        <h2>Local description is set to:</h2>
+        <p class="large-output" id="local-description"></p>
+
+        <h2>Remote description is set to:</h2>
+        <p class="large-output" id="remote-description"></p>
+
+
+
+        <br>
+
+        <div id="chat">
+            <div id="chat-content" ></div>
+        </div>
+        <input id="chat-input" rows="1"></input>
+
+
+        
+    </body>
+    <script src="main.js" async defer></script>
+</html>
