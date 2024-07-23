@@ -16,14 +16,13 @@
 
 Extra points:
 - Message 4 is referred to as 4x to denote that multiple may be send by each client.
-- Client B rejects the connection request if Client A is not a friend of Client B, and sends a Reject message in place of 2.
-- Users should not be able send the messages 1, 2, 3, and 4x out of the order as follows (prevent spam):
+- Client B rejects the connection request if Client A is not a friend of Client B, and sends a Reject message in place of 2. This also causes client A to remove B as a friend.
+- **(Could-have feature)** Users should not be able send the messages 1, 2, 3, and 4x out of the order as follows (prevent spam):
     - 2 must be after 1
     - Client B's ICE candidates (4x) must be after 2
     - 3 must be after 2
     - Client A's ICE candidates (4x) must be after 3
-
-- Signalling server has a timeout window to verify the above. Messages sent after the timeout or in the wrong order are ignored by the server (not forwarded on to the peer.)
+- **(Could-have feature)** Signalling server has a timeout window to verify the above. Messages sent after the timeout or in the wrong order are ignored by the server (not forwarded on to the peer.)
 
 ## Sending a message to a peer
 
