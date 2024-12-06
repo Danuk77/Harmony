@@ -64,6 +64,8 @@ Skipping proof of ownership of public key for now.
 
 ## Friend request
 
+Indicate you wish to become friends with a peer, and get a response `"reject"`, `"accept"`, or `"pending"`.
+
 > Note: Previously this was a synchronous routine where peer A would send a request to peer B, and B had to reply to A immediatly in the same transaction.
 >
 > Since this requires peer B (the human) to manually accept the friend request, this routine could have taken some time to complete, wasting memory on the server in the mean time.
@@ -122,6 +124,47 @@ Client A <==
     "forwarded": {
         "type": "reject" // or "accept", "pending"
     },
+    "terminate": "done"
+}
+```
+
+## Friend rejection
+
+Indicate you do **not** want to become friends with a peer.
+
+Client A ==> Server
+```jsonc
+{
+    "initiate": "sendFriendRejection",
+    "key": "..." // the public key of the friend
+}
+```
+
+**If the requested friend is offline:**
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "offline",
+    "terminate": "done"
+}
+```
+
+**Else:**
+
+Client B <==
+```jsonc
+{
+    "initiate": "receiveFriendRejection",
+    "key": "...", // public key of the requestee (client A)
+    "terminate": "done"
+}
+```
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "online",
     "terminate": "done"
 }
 ```
