@@ -6,7 +6,7 @@ General patterns:
 + The first message of each transaction (initiated by the client or the server) must contain the property `"initiate":"..."` with the name of the transaction.
 + The `"terminate": "..."` property, when sent by either the client or the server, indicates that the transaction has ended.
     + `"terminate": "done"` is sent **by the server only** when the routine has completed.
-    + `"terminate": "cancel"` is sent **by either the server or the client** when it wants to end the transaction early, e.g. because of a timeout or user cancel.
+    + `"terminate": "cancel"` is sent **by either the server or the client** when it wants to end the transaction early, e.g. because of a timeout or user cancel. If sent from the **server**, it may also include an `"error": "..."` property containing a helpful error message for the client.
 + For messages that a client wants to forward to a peer through the signalling server, the general format for the send and receive is:
     ```jsonc
     // send
@@ -18,7 +18,7 @@ General patterns:
     }
     ```
     ```jsonc
-    // recieve
+    // receive
     {
         "forwarded": {
             "type": "...",
@@ -64,6 +64,12 @@ Skipping proof of ownership of public key for now.
 
 ## Friend request
 
+> Note: Previously this was a synchronous routine where peer A would send a request to peer B, and B had to reply to A immediatly in the same transaction.
+>
+> Since this requires peer B (the human) to manually accept the friend request, this routine could have taken some time to complete, wasting memory on the server in the mean time.
+>
+> I have revised this so that peer B instead immediately returns a `pending` status, and is required to initiate another Friend request routine to become friends.
+
 Client A ==> Server
 ```jsonc
 {
@@ -88,18 +94,16 @@ Client A <==
 Client B <==
 ```jsonc
 {
-    "initiate": "recieveFriendRequest",
+    "initiate": "receiveFriendRequest",
     "key": "..." // public key of the requestee (client A)
 }
 ```
 
-**If client B rejects the request:**
-
 Client B ==> Server
 ```jsonc
 {
     "forward": {
-        "type": "reject"
+        "type": "reject" // or "accept", "pending"
     }
 }
 ```
@@ -116,36 +120,7 @@ Client A <==
 {
     "peerStatus": "online",
     "forwarded": {
-        "type": "reject"
-    },
-    "terminate": "done"
-}
-```
-
-**Else if client B accepts the request:**
-
-Client B ==> Server
-```jsonc
-{
-    "forward": {
-        "type": "accept"
-    }
-}
-```
-
-Client B <==
-```jsonc
-{
-    "terminate": "done"
-}
-```
-
-Client A <==
-```jsonc
-{
-    "peerStatus": "online",
-    "forwarded": {
-        "type": "accept"
+        "type": "reject" // or "accept", "pending"
     },
     "terminate": "done"
 }
@@ -177,7 +152,7 @@ Client A <==
 Client B <==
 ```jsonc
 {
-    "initiate": "recieveConnectionRequest",
+    "initiate": "receiveConnectionRequest",
     "key": "..."
 }
 ```
@@ -254,6 +229,7 @@ Client A ==> Server
         }
     }
 }
+```
 
 Client B <==
 ```jsonc
