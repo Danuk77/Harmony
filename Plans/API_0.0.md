@@ -1,3 +1,5 @@
+Harmony websocket protocol version 0.0
+
 # Websocket message format
 
 All messages about the same instance of a routine should begin with 16 random bytes identifying the routine. The JSON message should then follow, encoded in UTF-8.
