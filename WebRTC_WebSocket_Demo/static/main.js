@@ -149,6 +149,7 @@ socket.on("forwardingRuleCreated", async (/**@type {{remoteUser:User, initiator:
     // send ice candidates to peer
     peerConnection.onicecandidate = async ({ candidate }) => {
         if (candidate) {
+            console.log("onIceCandidate")
             socket.emit("passICECandidate", JSON.stringify(candidate.toJSON()))
         }
     }
@@ -164,6 +165,7 @@ socket.on("forwardingRuleCreated", async (/**@type {{remoteUser:User, initiator:
 
         // create the offer
         const offer = await peerConnection.createOffer();
+        console.log("set local description")
         await peerConnection.setLocalDescription(offer);
 
         // send offer to peer
@@ -179,6 +181,7 @@ socket.on("receiveSDP", async (/**@type {string}*/sdpStr) => {
     console.log("received SDP")
     console.log(sdp);
 
+    console.log("set remote description")
     await peerConnection.setRemoteDescription(sdp);
 
     // if the sdp was an offer we need to create an answer

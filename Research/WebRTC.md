@@ -65,3 +65,12 @@ Full-cone, (Address-)restricted cone, and port-restricted cone NAT schemes trans
 Symmetric NAT uses different mappings based on the destination IP address, meaning STUN servers cannot be used to determine the external mapped port. A relay server will likely need to be used in this case. This NAT type is more common for business connections and mobile data.
 
 [pystun3](https://github.com/talkiq/pystun3) can be used to determine your NAT type.
+
+## WebSockets
+
+A common way of signalling WebRTC. 
+
+Create a 2-way connection between a client and a server. It uses the HTTP upgrade header to change to the WebSocket protocol.
+
+
+

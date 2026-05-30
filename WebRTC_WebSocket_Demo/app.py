@@ -171,4 +171,4 @@ def passICECandidate(candidate:str):
 
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=25565)
+    socketio.run(app, host="0.0.0.0", port=25565, debug=False)
