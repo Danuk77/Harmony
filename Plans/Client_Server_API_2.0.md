@@ -1,4 +1,4 @@
-Harmony websocket protocol version 0.0
+Harmony client/server API version 2.0
 
 # Websocket message format
 
@@ -28,7 +28,11 @@ General patterns:
         }
     }
     ```
-    + The server checks the forwarded messages are of the expected format 
+    + The server checks the forwarded messages are of the expected format
+
+## Changes since protocol version 1.1
+
+Changed comeOnline client verification.
 
 ## Connecting to the signalling server/coming online
 
@@ -42,18 +46,38 @@ To server ==>
 To client <==
 ```jsonc
 {
-    "version": "0.0", // current server protocol version
+    "version": "1.0", // current server protocol version
 }
 ```
 
 ==>
 ```jsonc
 {
-    "publicKey": "cffd10babed1182e7d8e6cff845767eeae4508aa13cd00379233f57f799dc18c1eefd35b51db36e3da4770737a3f8fe75eda0cd3c48f23ea705f3234b0929f9e" // 512 bit public key, encoded in hexadecimal.
+    "publicKey": "MCowBQYDK2VwAyEAD3pfdaWP1vA8nXUAf5dzdsGevPqsnTHeAdHycHZ7Zm4=" // Ed25519 public key in PKCS#1/DER format, encoded in base64
 }
 ```
 
-Skipping proof of ownership of public key for now.
+<==
+```jsonc
+{
+    "challenge": "..." // random string
+}
+```
+
+==>
+```jsonc
+{
+    "payload": {
+        "challenge": "...", // the orignal challenge sent by the server
+        "hostname": "harmonytestserver.org", // domain name (or IP address if the server allows it) of the server
+        "purpose": "comeOnline",
+        "currentTime": "2026-07-18T11:37:52+0000" // ISO-8601 time string. must be no more than 2 seconds out from the server time.
+    },
+    "signature": "...", // payload coverted to canonical json, sha256 hashed, signed with private key, and encoded in base64
+}
+```
+
+A `"terminate": "cancel"` error message is sent by the server if the payload or signature is invalid.
 
 <==
 ```jsonc
@@ -67,12 +91,6 @@ Skipping proof of ownership of public key for now.
 ## Friend request
 
 Indicate you wish to become friends with a peer, and get a response `"reject"`, `"accept"`, or `"pending"`.
-
-> Note: Previously this was a synchronous routine where peer A would send a request to peer B, and B had to reply to A immediatly in the same transaction.
->
-> Since this requires peer B (the human) to manually accept the friend request, this routine could have taken some time to complete, wasting memory on the server in the mean time.
->
-> I have revised this so that peer B instead immediately returns a `pending` status, and is required to initiate another Friend request routine to become friends.
 
 Client A ==> Server
 ```jsonc
@@ -343,3 +361,5 @@ Client B <==
     "terminate": "done"
 }
 ```
+
+> Note: often a final empty ICE candidate is not sent by either of the clients. In this case we rely on the server timeout to end the transaction.

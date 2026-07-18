@@ -1,4 +1,4 @@
-Harmony websocket protocol version 1.0
+Harmony client/server API version 1.0
 
 # Websocket message format
 
@@ -30,11 +30,12 @@ General patterns:
     ```
     + The server checks the forwarded messages are of the expected format
 
-## Changes since protocol version 1.0
+## Changes since protocol version 0.0
 
-+ Client may optionally append a random nonce to the server-provided "signThis" string in comeOnline before hashing.
++ Public keys are now Ed25519 keys, exported in PKCS#1/DER format and encoded in base64.
++ *ComeOnline* has an extra step where the client must sign a message provided by the server to prove ownership of the public key. 
 
-Fully backwards compatible with version 1.0
+> Note: The public key verification has been implemented as a separate step to avoid changing the first response type from the server, which contains the protocol version. If this message were changed, the client might reject the message without reading the version number, leading to headaches for users.
 
 ## Connecting to the signalling server/coming online
 
@@ -69,8 +70,7 @@ To client <==
 ==>
 ```jsonc
 {
-    "signature": "...", // the signature, encoded in base64
-    "nonce": "..." // optional. A string of at most 100 characters that was appended to the "signThis" message before hashing.
+    "signature": "..." // the signature, encoded in base64
 }
 ```
 
