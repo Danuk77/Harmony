@@ -1,0 +1,345 @@
+Harmony client/server API version 0.0
+
+# Websocket message format
+
+All messages about the same instance of a routine should begin with 16 random bytes identifying the routine. The JSON message should then follow, encoded in UTF-8.
+
+General patterns:
++ The first message of each transaction (initiated by the client or the server) must contain the property `"initiate":"..."` with the name of the transaction.
++ The `"terminate": "..."` property, when sent by either the client or the server, indicates that the transaction has ended.
+    + `"terminate": "done"` is sent **by the server only** when the routine has completed.
+    + `"terminate": "cancel"` is sent **by either the server or the client** when it wants to end the transaction early, e.g. because of a timeout or user cancel. If sent from the **server**, it may also include an `"error": "..."` property containing a helpful error message for the client.
++ For messages that a client wants to forward to a peer through the signalling server, the general format for the send and receive is:
+    ```jsonc
+    // send
+    {
+        "forward": {
+            "type": "...",
+            "payload": {...} // may be omitted
+        }
+    }
+    ```
+    ```jsonc
+    // receive
+    {
+        "forwarded": {
+            "type": "...",
+            "payload": {...} // may be omitted
+        }
+    }
+    ```
+    + The server checks the forwarded messages are of the expected format 
+
+## Connecting to the signalling server/coming online
+
+To server ==>
+```jsonc
+{
+    "initiate": "comeOnline"
+}
+```
+
+To client <==
+```jsonc
+{
+    "version": "0.0", // current server protocol version
+}
+```
+
+==>
+```jsonc
+{
+    "publicKey": "cffd10babed1182e7d8e6cff845767eeae4508aa13cd00379233f57f799dc18c1eefd35b51db36e3da4770737a3f8fe75eda0cd3c48f23ea705f3234b0929f9e" // 512 bit public key, encoded in hexadecimal.
+}
+```
+
+Skipping proof of ownership of public key for now.
+
+<==
+```jsonc
+{
+    "welcome": "welcome",
+    "terminate": "done"
+}
+```
+
+
+## Friend request
+
+Indicate you wish to become friends with a peer, and get a response `"reject"`, `"accept"`, or `"pending"`.
+
+> Note: Previously this was a synchronous routine where peer A would send a request to peer B, and B had to reply to A immediatly in the same transaction.
+>
+> Since this requires peer B (the human) to manually accept the friend request, this routine could have taken some time to complete, wasting memory on the server in the mean time.
+>
+> I have revised this so that peer B instead immediately returns a `pending` status, and is required to initiate another Friend request routine to become friends.
+
+Client A ==> Server
+```jsonc
+{
+    "initiate": "sendFriendRequest",
+    "key": "..." // the public key of the friend
+}
+```
+
+**If the requested friend is offline:**
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "offline",
+    "forwarded": null,
+    "terminate": "done"
+}
+```
+
+**Else:**
+
+Client B <==
+```jsonc
+{
+    "initiate": "receiveFriendRequest",
+    "key": "..." // public key of the requestee (client A)
+}
+```
+
+Client B ==> Server
+```jsonc
+{
+    "forward": {
+        "type": "reject" // or "accept", "pending"
+    }
+}
+```
+
+Client B <==
+```jsonc
+{
+    "terminate": "done"
+}
+```
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "online",
+    "forwarded": {
+        "type": "reject" // or "accept", "pending"
+    },
+    "terminate": "done"
+}
+```
+
+## Friend rejection
+
+Indicate you do **not** want to become friends with a peer.
+
+Client A ==> Server
+```jsonc
+{
+    "initiate": "sendFriendRejection",
+    "key": "..." // the public key of the friend
+}
+```
+
+**If the requested friend is offline:**
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "offline",
+    "terminate": "done"
+}
+```
+
+**Else:**
+
+Client B <==
+```jsonc
+{
+    "initiate": "receiveFriendRejection",
+    "key": "...", // public key of the requestee (client A)
+    "terminate": "done"
+}
+```
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "online",
+    "terminate": "done"
+}
+```
+
+## Establishing a connection to a peer
+
+Client A ==> Server
+```jsonc
+{
+    "initiate": "sendConnectionRequest",
+    "key": "..." // the public key of the friend
+}
+```
+
+**If the requested friend is offline:**
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "offline",
+    "forwarded": null,
+    "terminate": "done"
+}
+```
+
+**Else:**
+
+Client B <==
+```jsonc
+{
+    "initiate": "receiveConnectionRequest",
+    "key": "..."
+}
+```
+
+**If client B rejects the connection request:**
+
+Client B ==> Server
+```jsonc
+{
+    "forward": {
+        "type": "reject"
+    }
+}
+```
+
+Client B <==
+```jsonc
+{
+    "terminate": "done"
+}
+```
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "online",
+    "forwarded": {
+        "type": "reject"
+    },
+    "terminate": "done"
+}
+```
+
+**Else if client B accepts the connection request:**
+
+Client B ==> Server
+```jsonc
+{
+    "forward": {
+        "type": "acceptAndOffer",
+        "payload": {
+            // generated by WebRTC
+            "type": "offer",
+            "sdp": "..."
+        }
+    }
+}
+```
+
+Client A <==
+```jsonc
+{
+    "peerStatus": "online",
+    "forwarded": {
+        "type": "acceptAndOffer",
+        "payload": {
+            // generated by WebRTC
+            "type": "offer",
+            "sdp": "..."
+        }
+    }
+}
+```
+
+Client A ==> Server
+```jsonc
+{
+    "forward": {
+        "type": "answer",
+        "payload": {
+            // generated by WebRTC
+            "type": "answer",
+            "sdp": "..."
+        }
+    }
+}
+```
+
+Client B <==
+```jsonc
+{
+    "forwarded": {
+        "type": "answer",
+        "payload": {
+            // generated by WebRTC
+            "type": "answer",
+            "sdp": "..."
+        }
+    }
+}
+```
+
+As soon as client A sends its answer SDP, it starts sending ICE candidates.
+
+As soon as client B receives client A's answer SDP, it starts sending ICE candidates.
+
+The format of the messages is the same in both directions, so the client identifiers A and B have been replaced with **x** and **y** to abstract the direction of the messages. 
+
+Client **x** ==> Server
+```jsonc
+{
+    "forward": {
+        "type": "ICECandidate",
+        "payload": {
+            // generated by WebRTC
+            "candidate":"...",
+            "sdpMLineIndex":0,
+            "sdpMid":"...", // optional
+            "usernameFragment":"..." // optional
+        }
+    }
+}
+```
+
+Client **y** <==
+```jsonc
+{
+    "forwarded": {
+        "type": "ICECandidate",
+        "payload": {
+            // generated by WebRTC
+            "candidate":"...",
+            "sdpMLineIndex":0,
+            "sdpMid":"...", // optional
+            "usernameFragment":"..." // optional
+        }
+    }
+}
+```
+
+The last ICE candidate from both peers contains `"candidate": ""` (empty string). Once both clients have sent this ICE candidate:
+
+Client A <==
+```jsonc
+{
+    "terminate": "done"
+}
+```
+
+Client B <==
+```jsonc
+{
+    "terminate": "done"
+}
+```

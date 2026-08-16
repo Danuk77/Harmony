@@ -1,0 +1,43 @@
+body {
+    max-width: 800px;
+    /* center */
+    margin: 0 auto;
+}
+
+#userList {
+    width: 100%;
+    background-color: yellow;
+    min-height: 10px;
+}
+
+#userList a {
+    display: block;
+}
+
+#chat {
+    height: 300px;
+    background-color: #daedec;
+    width: 100%;
+    flex-direction: row;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+}
+
+#chatContent {
+    font-family: sans-serif;
+}
+
+#chatInput {
+    width: 100%;
+    resize: none;
+}
+
+
+
+@media screen and (max-width:800px) {
+    body {
+        width: 100%;
+    }
+}
