@@ -71,7 +71,7 @@ To client <==
         "challenge": "...", // the orignal challenge sent by the server
         "hostname": "harmonytestserver.org", // domain name (or IP address if the server allows it) of the server
         "purpose": "comeOnline",
-        "currentTime": "2026-07-18T11:37:52+0000" // ISO-8601 time string. must be no more than 2 seconds out from the server time.
+        "currentTime": "2026-07-18T11:37:52+0000" // RFC3339 time string. must be no more than 2 seconds out from the server time.
     },
     "signature": "...", // payload coverted to canonical json, sha256 hashed, signed with private key, and encoded in base64
 }
